@@ -5,7 +5,9 @@ namespace MeowTools.Utils
 {
     public static class Memory
     {
-        
+
+        #region Native Methods & Flags
+
         [Flags]
         public enum ProcessAccessFlags : uint
         {
@@ -24,6 +26,22 @@ namespace MeowTools.Utils
             Synchronize =  0x00100000,
             
             ReadWrite = VirtualMemoryOperation | VirtualMemoryRead | VirtualMemoryWrite | QueryInformation
+        }
+        
+        [Flags]
+        public enum MemoryProtection : uint
+        {
+            NoAccess = 0x01,
+            ReadOnly = 0x02,
+            ReadWrite = 0x04,
+            WriteCopy = 0x08,
+            Execute = 0x10,
+            ExecuteRead = 0x20,
+            ExecuteReadWrite = 0x40,
+            ExecuteWriteCopy = 0x80,
+            Guard = 0x100,
+            NoCache = 0x200,
+            WriteCombine = 0x400
         }
         
         [DllImport("kernel32.dll",  SetLastError = true)]
@@ -46,7 +64,17 @@ namespace MeowTools.Utils
             out IntPtr numberOfBytesWritten);
         
         [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool VirtualProtectEx(
+            IntPtr processHandle,
+            IntPtr address,
+            IntPtr size,
+            MemoryProtection newProtect,
+            out MemoryProtection oldProtect);
+        
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CloseHandle(IntPtr handle);
+
+        #endregion
 
         /// <summary>
         /// 根据基址和偏移计算最终地址
@@ -55,16 +83,16 @@ namespace MeowTools.Utils
         {
             address =  IntPtr.Zero;
             var currentAddress = baseAddress;
-            var buffer = new byte[8];
+            var buffer = new byte[IntPtr.Size];
 
             foreach (var offset in offsets)
             {
-                if (!ReadProcessMemory(handle, currentAddress, buffer, (IntPtr)8, out _))
+                if (!ReadProcessMemory(handle, currentAddress, buffer, (IntPtr)buffer.Length, out _))
                 {
                     return false;
                 }
                 
-                var pointer = (IntPtr) BitConverter.ToInt64(buffer, 0);
+                var pointer = IntPtr.Size == 8 ? (IntPtr) BitConverter.ToInt64(buffer, 0) : (IntPtr) BitConverter.ToInt32(buffer, 0);
                 
                 if (pointer == IntPtr.Zero)
                 {
@@ -76,6 +104,48 @@ namespace MeowTools.Utils
             
             address = currentAddress;
             return true;
+        }
+        
+        /// <summary>
+        /// 写入汇编代码
+        /// </summary>
+        public static bool WriteAssembly(IntPtr handle, IntPtr address, byte[] bytes)
+        {
+            if (handle == IntPtr.Zero || address == IntPtr.Zero || bytes == null || bytes.Length == 0)
+            {
+                return false;
+            }
+
+            var size = (IntPtr)bytes.Length;
+            
+            // 修改内存保护属性
+            if (!VirtualProtectEx(handle, address, size, MemoryProtection.ExecuteReadWrite, out var oldProtect))
+            {
+                return false;
+            }
+            
+            var result = WriteProcessMemory(handle, address, bytes, size, out _);
+
+            // 恢复原内存保护属性
+            VirtualProtectEx(handle, address, size, oldProtect, out _);
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 读取汇编代码
+        /// </summary>
+        public static bool ReadAssembly(IntPtr handle, IntPtr address, int length, out byte[] asmBytes)
+        {
+            asmBytes = null;
+            
+            if (handle == IntPtr.Zero || address == IntPtr.Zero || length <= 0)
+            {
+                return false;
+            }
+
+            asmBytes = new byte[length];
+            return ReadProcessMemory(handle, address, asmBytes, (IntPtr)length, out _);
         }
     }
 }

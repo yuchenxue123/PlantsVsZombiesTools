@@ -14,14 +14,20 @@ namespace MeowTools.Modifiers.Hybrid
             
         }
 
-        public override bool ModifySunshine(int count)
+        public override bool ModifySunshine(long count)
         {
             return WriteSunshine(Handle, count);
         }
 
-        public override bool ModifyCoin(int count)
+        public override bool ModifyCoin(long count)
         {
             return WriteCoin(Handle, count);
+        }
+
+        public override bool PlantNoCooldown()
+        {
+            ToBeContinue();
+            return false;
         }
 
         private IntPtr BaseAddress()
@@ -34,7 +40,7 @@ namespace MeowTools.Modifiers.Hybrid
         
         // private static readonly int[] SunshineOffsets = {0x770, 0x148, 0x28, 0x18, 0x60, 0x28, 0x1B8};
 
-        private bool WriteSunshine(IntPtr handle, int count)
+        private bool WriteSunshine(IntPtr handle, long count)
         {
             if (Memory.GetPointerAddress(handle, BaseAddress(), SunshineOffsets, out var address))
             {
@@ -56,7 +62,7 @@ namespace MeowTools.Modifiers.Hybrid
         
         // private static readonly int[] CoinOffsets = {0x258, 0x20, 0x2C8, 0x60, 0x28, 0x38};
 
-        private bool WriteCoin(IntPtr handle, int count)
+        private bool WriteCoin(IntPtr handle, long count)
         {
             if (Memory.GetPointerAddress(handle, BaseAddress(), CoinOffsets, out var address))
             {

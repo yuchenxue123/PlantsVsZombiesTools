@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Windows;
 using MeowTools.Utils;
 
 namespace MeowTools.Modifiers
@@ -63,8 +64,15 @@ namespace MeowTools.Modifiers
         }
 
 
-        public abstract bool ModifySunshine(int count);
+        public abstract bool ModifySunshine(long count);
         
-        public abstract bool ModifyCoin(int count);
+        public abstract bool ModifyCoin(long count);
+
+        public abstract bool PlantNoCooldown();
+        
+        protected void ToBeContinue()
+        {
+            MessageBox.Show($"未实现该功能", "消息", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 }

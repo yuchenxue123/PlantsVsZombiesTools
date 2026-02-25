@@ -122,7 +122,7 @@ namespace MeowTools
                 return;
             }
 
-            if (int.TryParse(SunshineCountInput.Text, out var count))
+            if (long.TryParse(SunshineCountInput.Text, out var count))
             {
                 // 这里添加实际的内存修改代码
                 StatusText.Text = _modifier.ModifySunshine(count) ? $"阳光已设置为: {count}" : "阳光修改失败";
@@ -163,8 +163,6 @@ namespace MeowTools
             {
                 return;
             }
-            
-            ToBeContinue();
         }
         
         /// <summary>
@@ -177,12 +175,9 @@ namespace MeowTools
                 return;
             }
             
-            ToBeContinue();
+            _modifier.PlantNoCooldown();
         }
 
-        private void ToBeContinue()
-        {
-            MessageBox.Show("未实现该功能", "消息", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        
     }
 }
