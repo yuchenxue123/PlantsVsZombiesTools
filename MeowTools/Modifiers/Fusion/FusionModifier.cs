@@ -27,6 +27,11 @@ namespace MeowTools.Modifiers.Fusion
             return WriteCoin(count);
         }
 
+        public override bool PlantNoConsume()
+        {
+            return false;
+        }
+
         public override bool PlantNoCooldown()
         {
             return WritePlantNoCooldown();

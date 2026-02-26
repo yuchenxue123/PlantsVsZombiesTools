@@ -68,6 +68,8 @@ namespace MeowTools.Modifiers
         
         public abstract bool ModifyCoin(long count);
 
+        public abstract bool PlantNoConsume();
+        
         public abstract bool PlantNoCooldown();
         
         protected void ToBeContinue()

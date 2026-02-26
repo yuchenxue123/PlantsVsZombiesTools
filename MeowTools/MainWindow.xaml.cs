@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,7 +39,7 @@ namespace MeowTools
             public static readonly GameVersion[] Entries = { Fusion, Hybrid };
         }
         
-        private Modifier _modifier;
+        private readonly List<Modifier> _modifiers = new List<Modifier>();
         private bool _isGameRunning = false;
         
         public MainWindow()
@@ -53,28 +55,49 @@ namespace MeowTools
         {
             try
             {
+                _modifiers.Clear();
+                var versionsText = "";
                 foreach (var version in GameVersion.Entries)
                 {
                     var processes = Process.GetProcessesByName(version.ProcessName);
+
+                    if (processes.Length <= 0) continue;
                     
-                    if (processes.Length > 0)
-                    {
-                        ProcessStatusText.Text = version.Name;
-                        ProcessStatusText.Foreground = System.Windows.Media.Brushes.Green;
-                        StatusText.Text = "运行中";
+                    // ProcessStatusText.Text = version.Name;
+                    // ProcessStatusText.Foreground = System.Windows.Media.Brushes.Green;
+                    // StatusText.Text = "运行中";
                         
-                        var process =  processes[0];
-                        _modifier = version.Factory.Invoke(process);
-                        _isGameRunning = true;
-                        return;
+                    var process = processes[0];
+                    _modifiers.Add(version.Factory.Invoke(process));
+
+                    if (_modifiers.Count == 1)
+                    {
+                        versionsText += version.Name;
                     }
-                    
+                    else
+                    {
+                        versionsText += ", " + version.Name;
+                    }
+
+                    // _isGameRunning = false;
+                    // ProcessStatusText.Text = "未检测到游戏进程";
+                    // ProcessStatusText.Foreground = System.Windows.Media.Brushes.Red;
+                    // StatusText.Text = "未检测到游戏进程";
+                }
+
+                if (_modifiers.Count == 0)
+                {
                     _isGameRunning = false;
                     ProcessStatusText.Text = "未检测到游戏进程";
                     ProcessStatusText.Foreground = System.Windows.Media.Brushes.Red;
                     StatusText.Text = "未检测到游戏进程";
+                    return;
                 }
-                
+
+                _isGameRunning = true;
+                ProcessStatusText.Text = versionsText;
+                ProcessStatusText.Foreground = System.Windows.Media.Brushes.Green;
+                StatusText.Text = "运行中";
             }
             catch (Exception ex)
             {
@@ -88,7 +111,7 @@ namespace MeowTools
         protected override void OnClosed(EventArgs e)
         {
             _isGameRunning = false;
-            _modifier?.Close();
+            _modifiers.ForEach(m => m.Close());
             base.OnClosed(e);
         }
 
@@ -125,7 +148,7 @@ namespace MeowTools
             if (long.TryParse(SunshineCountInput.Text, out var count))
             {
                 // 这里添加实际的内存修改代码
-                StatusText.Text = _modifier.ModifySunshine(count) ? $"阳光已设置为: {count}" : "阳光修改失败";
+                StatusText.Text = _modifiers.All(m => m.ModifySunshine(count)) ? $"阳光已设置为: {count}" : "阳光修改失败";
             }
             else
             {
@@ -146,7 +169,7 @@ namespace MeowTools
             if (int.TryParse(CoinCountInput.Text, out var count))
             {
                 // 这里添加实际的内存修改代码
-                StatusText.Text = _modifier.ModifyCoin(count) ? $"金币已设置为: {count}" : "金币修改失败";
+                StatusText.Text = _modifiers.All(m => m.ModifyCoin(count)) ? $"金币已设置为: {count}" : "金币修改失败";
             }
             else
             {
@@ -163,6 +186,8 @@ namespace MeowTools
             {
                 return;
             }
+            
+            _modifiers.ForEach(m => m.PlantNoConsume());
         }
         
         /// <summary>
@@ -175,7 +200,7 @@ namespace MeowTools
                 return;
             }
             
-            _modifier.PlantNoCooldown();
+            _modifiers.ForEach(m => m.PlantNoCooldown());
         }
 
         

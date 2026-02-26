@@ -24,9 +24,13 @@ namespace MeowTools.Modifiers.Hybrid
             return WriteCoin(Handle, count);
         }
 
+        public override bool PlantNoConsume()
+        {
+            return false;
+        }
+
         public override bool PlantNoCooldown()
         {
-            ToBeContinue();
             return false;
         }
 
