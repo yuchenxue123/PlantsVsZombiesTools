@@ -62,9 +62,7 @@ namespace MeowTools.Modifiers.Hybrid
             return false;
         }
         
-        private static readonly int[] CoinOffsets = {0x258, 0x20, 0x60, 0x28, 0x38};
-        
-        // private static readonly int[] CoinOffsets = {0x258, 0x20, 0x2C8, 0x60, 0x28, 0x38};
+        private static readonly int[] CoinOffsets = {0x2B0, 0x48, 0x20, 0x0, 0x60, 0x28, 0x38};
 
         private bool WriteCoin(IntPtr handle, long count)
         {
